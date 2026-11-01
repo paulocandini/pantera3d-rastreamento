@@ -32,11 +32,11 @@ export function createServer({token=process.env.ME_TOKEN,fetcher=fetch}={}) {
    if(cache.get(code)?.until>now)return json(200,cache.get(code).data);
    try{
     const response=await fetcher('https://melhorenvio.com.br/api/v2/me/orders/search?q='+encodeURIComponent(code),{headers:{Authorization:'Bearer '+token,Accept:'application/json','User-Agent':'PANTERA 3D Rastreamento (contato@pantera3d.com.br)'},signal:AbortSignal.timeout(20000)});
-    if(!response.ok)return json(503,{message:'A transportadora não respondeu à consulta. Tente novamente em instantes.'});
+    if(!response.ok)console.warn('tracking_upstream_status',response.status); if(!response.ok)return json(503,{message:'A transportadora não respondeu à consulta. Tente novamente em instantes.'});
     const shipment=findShipment(await response.json(),code);
     if(!shipment)return json(404,{message:'Envio não localizado. Confira o código. Uma postagem recente pode levar algum tempo para aparecer.'});
     const data=publicShipment(shipment);cache.set(code,{until:now+120000,data});if(cache.size>2000)cache.delete(cache.keys().next().value);return json(200,data);
-   }catch{return json(503,{message:'Não foi possível consultar agora. Tente novamente em instantes.'});}
+   }catch(error){console.warn('tracking_lookup_failed',error.name,error.cause?.code||'');return json(503,{message:'Não foi possível consultar agora. Tente novamente em instantes.'});}
   }
   if(url.pathname==='/'||url.pathname==='/embed'){
     res.writeHead(200,{'Content-Type':'text/html; charset=utf-8'});res.end(await readFile(new URL('./index.html',import.meta.url)));return;
