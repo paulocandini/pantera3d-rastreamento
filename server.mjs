@@ -18,8 +18,8 @@ const buckets=new Map(), cache=new Map();
 export function createServer({token=process.env.ME_TOKEN,fetcher=fetch}={}) {
  return http.createServer(async(req,res)=>{
   const url=new URL(req.url,'http://localhost');
-  res.setHeader('X-Content-Type-Options','nosniff');res.setHeader('Referrer-Policy','no-referrer');
-  res.setHeader('Content-Security-Policy',"default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; frame-ancestors https://pantera3d.com.br https://www.pantera3d.com.br https://s2qr8b-g0.myshopify.com");
+  res.setHeader('X-Content-Type-Options','nosniff');res.setHeader('Referrer-Policy','strict-origin-when-cross-origin');
+  res.setHeader('Content-Security-Policy',"default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com; style-src 'self' 'unsafe-inline' https://unpkg.com; img-src 'self' data: https://tile.openstreetmap.org https://unpkg.com; frame-ancestors https://pantera3d.com.br https://www.pantera3d.com.br https://s2qr8b-g0.myshopify.com");
   const json=(status,body)=>{res.writeHead(status,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'});res.end(JSON.stringify(body));};
   if(url.pathname==='/healthz')return json(token?200:503,{ok:!!token});
   if(req.method!=='GET')return json(405,{message:'Método não permitido.'});
