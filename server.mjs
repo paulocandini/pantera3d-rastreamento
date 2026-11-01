@@ -31,9 +31,9 @@ export function createServer({token=process.env.ME_TOKEN,fetcher=fetch}={}) {
    if(!token)return json(503,{message:'A consulta está temporariamente indisponível. Fale com nossa equipe.'});
    if(cache.get(code)?.until>now)return json(200,cache.get(code).data);
    try{
-    const response=await fetcher('https://melhorenvio.com.br/api/v2/me/orders/search?q='+encodeURIComponent(code),{headers:{Authorization:'Bearer '+token,Accept:'application/json','User-Agent':'PANTERA 3D Rastreamento (contato@pantera3d.com.br)'},signal:AbortSignal.timeout(20000)});
+    const response=await fetcher('https://melhorenvio.com.br/api/v2/me/orders/search?q='+encodeURIComponent(code),{headers:{Authorization:'Bearer '+token,Accept:'application/json','Content-Type':'application/json','User-Agent':'PANTERA 3D Rastreamento (contato@pantera3d.com.br)'},signal:AbortSignal.timeout(20000)});
     if(!response.ok)console.warn('tracking_upstream_status',response.status); if(!response.ok)return json(503,{message:'A transportadora não respondeu à consulta. Tente novamente em instantes.'});
-    const shipment=findShipment(await response.json(),code);
+    if(!(response.headers.get('content-type')||'').includes('application/json')){console.warn('tracking_non_json',response.status,new URL(response.url).pathname);return json(503,{message:'A consulta está temporariamente indisponível. Tente novamente em instantes.'});} const shipment=findShipment(await response.json(),code);
     if(!shipment)return json(404,{message:'Envio não localizado. Confira o código. Uma postagem recente pode levar algum tempo para aparecer.'});
     const data=publicShipment(shipment);cache.set(code,{until:now+120000,data});if(cache.size>2000)cache.delete(cache.keys().next().value);return json(200,data);
    }catch(error){console.warn('tracking_lookup_failed',error.name,error.cause?.code||'');return json(503,{message:'Não foi possível consultar agora. Tente novamente em instantes.'});}
