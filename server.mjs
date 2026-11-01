@@ -21,7 +21,7 @@ export function createServer({token=process.env.ME_TOKEN,fetcher=fetch}={}) {
   res.setHeader('X-Content-Type-Options','nosniff');res.setHeader('Referrer-Policy','strict-origin-when-cross-origin');
   res.setHeader('Content-Security-Policy',"default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com; style-src 'self' 'unsafe-inline' https://unpkg.com; img-src 'self' data: https://tile.openstreetmap.org https://unpkg.com; frame-ancestors https://pantera3d.com.br https://www.pantera3d.com.br https://s2qr8b-g0.myshopify.com");
   const json=(status,body)=>{res.writeHead(status,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'});res.end(JSON.stringify(body));};
-  if(url.pathname==='/healthz')return json(token?200:503,{ok:!!token});
+  if(url.pathname==='/brand-logo.webp'){res.writeHead(200,{'Content-Type':'image/webp','Cache-Control':'public, max-age=31536000'});res.end(Buffer.from((await readFile(new URL('./logo.b64',import.meta.url),'utf8')).trim(),'base64'));return;} if(url.pathname==='/healthz')return json(token?200:503,{ok:!!token});
   if(req.method!=='GET')return json(405,{message:'Método não permitido.'});
   if(url.pathname==='/api/tracking'){
    const ip=(req.headers['x-forwarded-for']||req.socket.remoteAddress||'').split(',')[0].trim();
